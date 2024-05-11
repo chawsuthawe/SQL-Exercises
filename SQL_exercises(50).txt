@@ -1,0 +1,519 @@
+1.
+
+SELECT prodct_id
+FROM products
+WHERE low_fats='y' and recyclable='y';
+
+2.
+
+SELECT name 
+FROM Customer
+WHERE  IS NULL OR referee_id!=2;
+  
+3.
+
+SELECT name, population, area
+FROM World
+WHERE area >= 3000000 OR population >= 25000000;
+
+4.
+
+SELECT DISTINCT author_id AS id
+FROM Views
+WHERE author_id = viewer_id;
+
+5.
+
+SELECT tweet_id 
+FROM Tweets
+WHERE content>15;
+
+6.
+SELECT e.name,euni.unique_id
+FROM Employees e
+JOIN EmployeeUNI euni ON e.id = eun.id;
+
+7.
+
+SELECT p.product_name, s.year, s.price
+FROM Sales s
+JOIN Product p ON s.product_id = p.product_id;
+
+8. 
+
+SELECT v.customer_id, COUNT(t.transaction_id) AS count_no_trans
+FROM Visits v LEFT JOIN  Transactions t ON v.visit_id = t.visit_id
+WHERE  t.visit_id IS NULL GROUP BY  v.customer_id;
+
+9.
+
+SELECT w.id
+FROM Weather w JOIN Weather w_prev ON w.recordDate = DATE_ADD(w_prev.recordDate, INTERVAL 1 DAY)
+WHERE w.temperature > w_prev.temperature;
+
+ 10.
+
+SELECT machine_id, ROUND(AVG(end_time - start_time), 3) AS processing_time
+FROM ( SELECT  machine_id, process_id,MIN(CASE WHEN activity_type = 'start' THEN timestamp END) AS start_time,  
+MAX(CASE WHEN activity_type = 'end' THEN timestamp END) AS end_time FROM Activity GROUP BY machine_id, process_id) AS temp GROUP BY machine_id;
+
+11
+
+SELECT e.name,b.bonus
+FROM Employee  LEFT JOIN Bonus b ON e.empId = b.empId
+WHERE b.bonus < 1000 OR b.bonus IS NULL;
+
+12.
+
+SELECT s.student_id,s.student_name,sub.subject_name,COALESCE(COUNT(e.subject_name), 0) AS attended_exams
+FROM Students  CROSS JOIN Subjects sub LEFT JOIN Examinations e ON s.student_id = e.student_id AND sub.subject_name=e.subject_name GROUP BY s.student_id, s.student_name, sub.subject_name ORDER BY s.student_id, sub.subject_name;
+
+
+13.
+
+SELECT  e.name
+FROM  Employee JOIN Employee e_sub ON e.id = e_sub.managerId GROUP BY  e.id HAVING  COUNT(e_sub.id) >= 5;
+
+14.
+
+SELECT   s.user_id,ROUND( IFNULL(SUM(CASE WHEN c.action = 'confirmed' THEN 1 ELSE 0 END) / NULLIF(COUNT(c.user_id), 0), 0 ),2 ) AS confirmation_rate
+FROM Signups s LEFT JOIN Confirmations c ON s.user_id = c.user_id GROUP BY s.user_id;
+
+15.
+
+SELECT id, movie, description, rating
+FROM Cinema
+WHERE id % 2 != 0 AND description != 'boring'
+ORDER BY rating DESC;
+
+16.
+SELECT 
+    us.product_id,
+    ROUND(SUM(p.price * DATEDIFF(LEAST(p.end_date, us.purchase_date), GREATEST(p.start_date, us.purchase_date))) / SUM(us.units), 2) AS average_price
+FROM Prices p
+JOIN UnitsSold us ON p.product_id = us.product_id
+AND us.purchase_date BETWEEN p.start_date AND p.end_date
+GROUP BY us.product_id
+
+
+17.
+
+SELECT project_id, ROUND(AVG(experience_years), 2) AS average_years
+FROM Project
+JOIN Employee ON Project.employee_id = Employee.employee_id
+GROUP BY project_id;
+
+
+18.
+
+SELECT contest_id, 
+       ROUND(COUNT(user_id) * 100.0 / (SELECT COUNT(DISTINCT user_id) FROM Register), 2) AS percentage
+FROM Register
+GROUP BY contest_id
+ORDER BY percentage DESC, contest_id;
+
+19.
+
+SELECT query_name, 
+       ROUND(AVG(CAST(rating AS DECIMAL) / position), 2) AS quality,
+       ROUND((SUM(CASE WHEN rating < 3 THEN 1 ELSE 0 END) * 100.0 / COUNT(*)), 2) AS poor_query_percentage
+FROM Queries
+GROUP BY query_name;
+
+20.
+
+SELEECT DATE_FORMAT(trans_date, '%Y-%m') AS month,
+    country,
+    COUNT(id) AS trans_count,
+    SUM(CASE WHEN state = 'approved' THEN 1 ELSE 0 END) AS approved_count,
+    SUM(amount) AS trans_total_amount,
+    SUM(CASE WHEN state = 'approved' THEN amount ELSE 0 END) AS approved_total_amount
+FROM Transactions
+GROUP BY DATE_FORMAT(trans_date, '%Y-%m'), country
+
+21.
+
+SELECT ROUND(
+        (SUM(CASE WHEN order_date = customer_pref_delivery_date THEN 1 ELSE 0 END) 
+        / COUNT(DISTINCT customer_id)) * 100, 
+    2) AS immediate_percentage
+FROM Delivery
+WHERE (customer_id, order_date) IN (
+    SELECT customer_id, MIN(order_date)
+    FROM Delivery
+    GROUP BY customer_id
+)
+
+
+22.
+
+SELECT ROUND(
+    SUM(CASE WHEN DATEDIFF(event_date, FIRST_VALUE(event_date) OVER (PARTITION BY player_id ORDER BY event_date)) = 1 THEN 1 ELSE 0 END)
+    / COUNT(DISTINCT player_id),
+    2) AS fraction
+FROM Activity
+
+
+23.
+
+SELECT teacher_id, COUNT(DISTINCT subject_id) AS cnt
+FROM Teacher
+GROUP BY teacher_id
+
+24.
+
+SELECT activity_date AS day, COUNT(DISTINCT user_id) AS active_users
+FROM Activity
+WHERE activity_date BETWEEN '2019-06-28' AND '2019-07-27'
+GROUP BY activity_date
+
+
+25.
+
+SELECT s.product_id, s.year AS first_year, s.quantity, s.price
+FROM Sales s
+JOIN (
+    SELECT product_id, MIN(year) AS min_year
+    FROM Sales
+    GROUP BY product_id
+) AS first_year_sales ON s.product_id = first_year_sales.product_id AND s.year = first_year_sales.min_year;
+
+26.
+
+SELECT class
+FROM Courses
+GROUP BY class
+HAVING COUNT(student) >= 5;
+
+27.
+
+SELECT user_id, COUNT(DISTINCT follower_id) AS followers_count
+FROM Followers
+GROUP BY user_id
+ORDER BY user_id;
+
+28.
+
+SELECT MAX(num) AS num
+FROM MyNumbers
+GROUP BY num
+HAVING COUNT(num) = 1;
+
+29.
+
+SELECT customer_id
+FROM Customer
+GROUP BY customer_id
+HAVING COUNT(DISTINCT product_key) = (SELECT COUNT(*) FROM Product);
+
+30.
+
+SELECT
+    e.employee_id,
+    e.name,
+    COUNT(r.employee_id) AS reports_count,
+    ROUND(AVG(r.age)) AS average_age
+FROM
+    Employees e
+LEFT JOIN
+    Employees r ON e.employee_id = r.reports_to
+GROUP BY
+    e.employee_id
+HAVING
+    reports_count > 0
+ORDER BY
+    e.employee_id;
+
+31.
+
+SELECT
+    employee_id,
+    CASE
+        WHEN COUNT(*) = 1 THEN MAX(department_id)
+        ELSE MAX(CASE WHEN primary_flag = 'Y' THEN department_id END)
+    END AS department_id
+FROM
+    Employee
+GROUP BY
+    employee_id;
+
+32.
+
+SELECT
+    x,
+    y,
+    z,
+    CASE
+        WHEN x + y > z AND x + z > y AND y + z > x THEN 'Yes'
+        ELSE 'No'
+    END AS triangle
+FROM
+    Triangle;
+
+33.
+
+WITH ConsecutiveCounts AS (
+    SELECT
+        num,
+        COUNT(*) OVER (PARTITION BY num ORDER BY id) AS consecutive_count
+    FROM
+        Logs
+)
+SELECT DISTINCT
+    num AS ConsecutiveNums
+FROM
+    ConsecutiveCounts
+WHERE
+    consecutive_count >= 3;
+
+34.
+
+WITH RECURSIVE ProductPrices AS (
+    SELECT 
+        product_id,
+        change_date,
+        new_price
+    FROM 
+        Products
+    WHERE 
+        change_date <= '2019-08-16'
+    UNION ALL
+    SELECT 
+        p.product_id,
+        '2019-08-16' AS change_date,
+        COALESCE(pp.new_price, 10) AS new_price
+    FROM 
+        ProductPrices pp
+    JOIN 
+        Products p ON pp.product_id = p.product_id
+    WHERE 
+        p.change_date > pp.change_date
+)
+SELECT 
+    product_id,
+    MAX(new_price) AS price
+FROM 
+    ProductPrices
+GROUP BY 
+    product_id;
+
+35.
+
+SELECT person_name
+FROM (
+    SELECT person_name, turn,
+           SUM(weight) OVER (ORDER BY turn) AS total_weight
+    FROM Queue
+) AS cumulative_sum
+WHERE total_weight <= 1000
+ORDER BY turn DESC
+LIMIT 1;
+
+36.
+
+SELECT
+    category,
+    COALESCE(accounts_count, 0) AS accounts_count
+FROM (
+    SELECT
+        CASE
+            WHEN income < 20000 THEN 'Low Salary'
+            WHEN income >= 20000 AND income <= 50000 THEN 'Average Salary'
+            WHEN income > 50000 THEN 'High Salary'
+        END AS category,
+        COUNT(account_id) AS accounts_count
+    FROM Accounts
+    GROUP BY category
+) AS categories
+RIGHT JOIN (
+    SELECT 'Low Salary' AS category
+    UNION ALL
+    SELECT 'Average Salary' AS category
+    UNION ALL
+    SELECT 'High Salary' AS category
+) AS all_categories ON categories.category = all_categories.category
+ORDER BY
+    CASE
+        WHEN category = 'Low Salary' THEN 1
+        WHEN category = 'Average Salary' THEN 2
+        WHEN category = 'High Salary' THEN 3
+    END;
+
+37.
+
+SELECT e1.employee_id
+FROM Employees e1
+LEFT JOIN Employees e2 ON e1.manager_id = e2.employee_id
+WHERE e1.salary < 30000 AND e2.employee_id IS NULL
+ORDER BY e1.employee_id;
+
+38.
+
+SELECT 
+    CASE 
+        WHEN id % 2 = 1 AND id < (SELECT MAX(id) FROM Seat) THEN id + 1
+        WHEN id % 2 = 0 THEN id - 1
+        ELSE id
+    END AS id,
+    CASE 
+        WHEN id % 2 = 1 AND id < (SELECT MAX(id) FROM Seat) THEN (
+            SELECT student FROM Seat WHERE id = s.id + 1
+        )
+        ELSE student
+    END AS student
+FROM Seat s
+ORDER BY id;
+
+39.
+
+SELECT results
+FROM (
+    SELECT name AS results, 1 AS type
+    FROM Users u
+    JOIN (
+        SELECT user_id, COUNT(*) AS num_ratings
+        FROM MovieRating
+        GROUP BY user_id
+        ORDER BY num_ratings DESC, user_id ASC
+        LIMIT 1
+    ) mr ON u.user_id = mr.user_id
+    
+    UNION ALL
+    
+    SELECT title AS results, 2 AS type
+    FROM Movies m
+    JOIN (
+        SELECT movie_id, AVG(rating) AS avg_rating
+        FROM MovieRating
+        WHERE EXTRACT(YEAR_MONTH FROM created_at) = '202002'
+        GROUP BY movie_id
+        ORDER BY avg_rating DESC, movie_id ASC
+        LIMIT 1
+    ) mr ON m.movie_id = mr.movie_id
+) temp
+ORDER BY type;
+
+40.
+
+SELECT 
+    visited_on,
+    SUM(amount) AS amount,
+    ROUND(AVG(amount) OVER (ORDER BY visited_on ROWS BETWEEN 6 PRECEDING AND CURRENT ROW), 2) AS average_amount
+FROM Customer
+GROUP BY visited_on
+ORDER BY visited_on;
+
+41.
+
+SELECT id, num
+FROM (
+    SELECT user_id AS id, COUNT(*) AS num
+    FROM (
+        SELECT requester_id AS user_id
+        FROM RequestAccepted
+        UNION ALL
+        SELECT accepter_id AS user_id
+        FROM RequestAccepted
+    ) AS combined
+    GROUP BY user_id
+) AS friend_count
+WHERE num = (
+    SELECT MAX(num)
+    FROM (
+        SELECT user_id AS id, COUNT(*) AS num
+        FROM (
+            SELECT requester_id AS user_id
+            FROM RequestAccepted
+            UNION ALL
+            SELECT accepter_id AS user_id
+            FROM RequestAccepted
+        ) AS combined
+        GROUP BY user_id
+    ) AS max_count
+);
+
+42.
+
+SELECT ROUND(SUM(tiv_2016), 2) AS tiv_2016
+FROM (
+    SELECT tiv_2015, SUM(tiv_2016) AS tiv_2016
+    FROM Insurance
+    GROUP BY tiv_2015
+    HAVING COUNT(*) > 1
+) AS same_tiv
+WHERE (tiv_2015, lat, lon) IN (
+    SELECT tiv_2015, lat, lon
+    FROM Insurance
+    GROUP BY tiv_2015, lat, lon
+    HAVING COUNT(*) = 1
+);
+
+43.
+
+WITH RankedSalaries AS (
+    SELECT e.name AS Employee, e.salary, d.name AS Department,
+           DENSE_RANK() OVER(PARTITION BY e.departmentId ORDER BY e.salary DESC) AS Rank
+    FROM Employee e
+    JOIN Department d ON e.departmentId = d.id
+)
+SELECT Department, Employee, salary AS Salary
+FROM RankedSalaries
+WHERE Rank <= 3;
+
+44.
+
+SELECT user_id, CONCAT(UPPER(LEFT(name, 1)), LOWER(RIGHT(name, LENGTH(name) - 1))) AS name
+FROM Users
+ORDER BY user_id;
+
+45.
+
+SELECT patient_id, patient_name, conditions
+FROM Patients
+WHERE conditions LIKE 'DIAB1%';
+
+46.
+
+DELETE p1 FROM Person p1
+JOIN Person p2 ON p1.email = p2.email AND p1.id > p2.id;
+
+47.
+
+SELECT 
+    (SELECT DISTINCT salary
+     FROM Employee
+     ORDER BY salary DESC
+     LIMIT 1 OFFSET 1) AS SecondHighestSalary;
+
+48.
+
+SELECT 
+    sell_date,
+    COUNT(DISTINCT product) AS num_sold,
+    GROUP_CONCAT(DISTINCT product ORDER BY product ASC SEPARATOR ',') AS products
+FROM Activities
+GROUP BY sell_date
+ORDER BY sell_date;
+
+49.
+
+SELECT p.product_name, SUM(o.unit) AS unit
+FROM Products p
+JOIN Orders o ON p.product_id = o.product_id
+WHERE MONTH(o.order_date) = 2 AND YEAR(o.order_date) = 2020
+GROUP BY p.product_id
+HAVING SUM(o.unit) >= 100;
+
+50.
+
+SELECT user_id, name, mail
+FROM Users
+WHERE mail REGEXP '^[a-zA-Z][a-zA-Z0-9._%-]*@leetcode\.com$';
+
+
+
+
+
+
+
+
